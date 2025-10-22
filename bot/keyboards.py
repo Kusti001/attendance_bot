@@ -1,5 +1,6 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup,KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
+# Клавиатура подтверждения регистрации
 confirm_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -9,8 +10,21 @@ confirm_keyboard = InlineKeyboardMarkup(
     ]
 )
 
-CheckIn_keyboard= ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="Отметиться")]],
-        resize_keyboard=True,
-        one_time_keyboard=False
-    )
+# Основная клавиатура для студентов
+student_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📝 Отметиться")]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=False
+)
+
+# Админская клавиатура
+admin_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📝 Отметиться")],
+        [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="📁 Экспорт")]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=False
+)

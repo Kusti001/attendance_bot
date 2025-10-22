@@ -13,7 +13,6 @@ class CodeGenerator:
         """Генерирует новый случайный код"""
         self.current_code = random.randint(1000, 9999)
         self.code_expires = datetime.now() + timedelta(seconds=self.validity_seconds)
-        print(f"🎯 Сгенерирован новый код: {self.current_code} (действует до {self.code_expires.strftime('%H:%M:%S')})")
 
     def get_current_code(self):
         """Возвращает текущий код, если он еще действителен"""

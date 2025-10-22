@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, select
 
-from config.config import DB_URL
+from config.config import DB_URL, MOSCOW_TZ
 # Создаём асинхронный движок для SQLite
 engine = create_async_engine("sqlite+aiosqlite:///bot.db", echo=False)
 
@@ -33,7 +33,7 @@ class Attendance(Base):
     __tablename__ = "attendances"
 
     id = Column(Integer, primary_key=True)
-    date = Column(DateTime, default=datetime.now(timezone.utc))
+    date = Column(DateTime, default=lambda: datetime.now(MOSCOW_TZ))
     user_id = Column(Integer, ForeignKey("users.id"))  # Ключ связи с таблицей users
 
     # Обратная связь "многие к одному"
@@ -104,8 +104,7 @@ class AttendanceManager:
                         return False
                     
                     # Проверяем, не отмечался ли уже сегодня
-                    from datetime import datetime, timezone
-                    today = datetime.now(timezone.utc).date()
+                    today = datetime.now(MOSCOW_TZ).date()
                     
                     existing_attendance = await session.execute(
                         select(Attendance).filter(
@@ -130,12 +129,21 @@ class AttendanceManager:
                     print("[ERR]", e)
                     return False
 
-
-
-
-
-
-
+    async def is_marked_today(self, telegram_id: int):
+        async with async_session() as session:
+            today = datetime.now(MOSCOW_TZ).date()
+            user_manager = UserManager()
+            user = await user_manager.get(telegram_id=telegram_id)
+            if not user:
+                print("[ERR] Пользователь не найден")
+                return False
+            result = await session.execute(
+                select(Attendance).filter(
+                    Attendance.user_id == user.id,
+                    Attendance.date >= today
+                )
+            )
+            return not(result.scalars().first() is None)
 # Функция для создания таблиц
 async def init_db():
     async with engine.begin() as conn:
