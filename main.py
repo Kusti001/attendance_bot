@@ -6,18 +6,26 @@ from bot.bot import main as bot_main
 from display.display import display_code
 from db.models import init_db
 
-async def main():
-    # создание бд
+
+async def start_bot(generator):
     await init_db()
-    
-    # создаём единый объект генератора
-    generator = CodeGenerator(CODE_INTERVAL)
-
-    # запускаем Tkinter в отдельном потоке
-    Thread(target=display_code, args=(generator,), daemon=True).start()
-
-    # запускаем бота
     await bot_main(generator)
 
+
+def start_bot_thread(generator):
+    asyncio.run(start_bot(generator))
+
+
+def main():
+    # создаём генератор
+    generator = CodeGenerator(CODE_INTERVAL)
+
+    # запускаем бота в отдельном потоке
+    Thread(target=start_bot_thread, args=(generator,), daemon=True).start()
+
+    # запускаем Tkinter в главном потоке
+    display_code(generator)
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

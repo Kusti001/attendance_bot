@@ -23,7 +23,7 @@ student_keyboard = ReplyKeyboardMarkup(
 admin_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📝 Отметиться")],
-        [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="📁 Экспорт")]
+        [KeyboardButton(text="📁 Экспорт"), KeyboardButton(text="📊 Статистика"),KeyboardButton(text="👥 Пользователи")]
     ],
     resize_keyboard=True,
     one_time_keyboard=False

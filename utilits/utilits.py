@@ -6,6 +6,7 @@ from sqlalchemy import select
 from db.models import User, Attendance
 from config.config import ADMIN_IDS, MOSCOW_TZ
 from dotenv import load_dotenv, set_key
+import openpyxl
 
 # Загружаем .env файл
 load_dotenv()
@@ -106,7 +107,6 @@ async def export_attendance_to_excel(session: AsyncSession, output_file: str = N
         query = select(Attendance, User).join(User, Attendance.user_id == User.id)
         result = await session.execute(query)
         data = result.all()
-        
         if not data:
             # Если данных нет, создаем пустой DataFrame
             df = pd.DataFrame(columns=["Дата", "ФИО", "Группа"])
@@ -190,6 +190,45 @@ async def export_attendance_to_excel(session: AsyncSession, output_file: str = N
         print(f"[ERR] Ошибка при экспорте в Excel: {e}")
         raise e
 
+async def export_users_to_excel(session: AsyncSession, output_file: str = None) -> str:
+    try:
+
+        if output_file is None:
+            output_file = f"users.xlsx"
+
+        # Базовый запрос с JOIN
+        query = select(User)
+        result = await session.execute(query)
+        data = result.scalars().all()
+        if not data:
+            # Если данных нет, создаем пустой DataFrame
+            df = pd.DataFrame(columns=["ФИО", "Группа","ТГ_АЙДИ"])
+        else:
+            # Создаем DataFrame из результатов
+            df = pd.DataFrame(
+                [
+                    {
+
+                        "ФИО": u.full_name if u.full_name else "",
+                        "Группа": u.group if u.group else "",
+                        "ТГ_АЙДИ": u.telegram_id if u.telegram_id else ""
+                    }
+                    for u in data
+                ],
+                columns=["Группа","ФИО","ТГ_АЙДИ"]
+            )
+
+        # Сортируем по дате и группе
+        df = df.sort_values(by=["Группа","ФИО","ТГ_АЙДИ"])
+
+        # Сохраняем в Excel (используем встроенный движок xlwt для .xls)
+        df.to_excel(output_file, index=False, engine='openpyxl')
+
+        return output_file
+
+    except Exception as e:
+        print(f"[ERR] Ошибка при экспорте в Excel: {e}")
+        raise e
 
 async def get_attendance_stats(session: AsyncSession) -> dict:
     """

@@ -5,7 +5,8 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
 import os
 from datetime import datetime
-from utilits.utilits import export_attendance_to_excel, is_admin, get_attendance_stats, add_admin, remove_admin, get_admin_ids
+from utilits.utilits import export_attendance_to_excel, is_admin, get_attendance_stats, add_admin, remove_admin, \
+    get_admin_ids, export_users_to_excel
 from . import keyboards as kb
 from config.config import MOSCOW_TZ
 from db.models import UserManager, AttendanceManager, async_session
@@ -96,7 +97,7 @@ async def process_code(message: Message, state: FSMContext, generator):
         if generator.is_code_valid(code):
             success = await attendance_manager.post(message.from_user.id)
             if success:
-                await message.answer("✅ **Посещение успешно отмечено!**")
+                await message.answer("✅ Посещение успешно отмечено!")
                 await state.clear()
             else:
                 await message.answer("⚠️ Вы уже отмечались сегодня!")
@@ -271,6 +272,7 @@ async def help_command(message: Message):
 **Для администраторов:**
 📊 Статистика - Показать статистику за день
 📁 Экспорт - Экспортировать данные в Excel
+/reset_user <tg_id> - Удаление пользователя
 
 **Как пользоваться:**
 1. Нажмите /start для регистрации
@@ -282,7 +284,6 @@ async def help_command(message: Message):
 **Поддержка:** Обратитесь к администратору при возникновении проблем
     """
     await message.answer(help_text, parse_mode="Markdown")
-
 
 @router.message(Command("status"))
 async def status_command(message: Message):
@@ -303,13 +304,10 @@ async def status_command(message: Message):
     else:
         await message.answer("❌ Вы не зарегистрированы. Используйте /start для регистрации")
 
-
 @router.message(Command("myid"))
 async def get_my_id(message: Message):
     """Показывает ID пользователя"""
     await message.answer(f"**Ваш ID:** `{message.from_user.id}`\n\nИспользуйте этот ID для решения проблем с регистрацией", parse_mode="Markdown")
-
-
 
 @router.message(Command("reset_user"))
 async def reset_user(message: Message):
@@ -325,8 +323,8 @@ async def reset_user(message: Message):
         return
     else:
         user_manager = UserManager()
-        if await user_manager.check_tg_id(command_parts[1]):
-            await user_manager.delete(command_parts[1])
+        if await user_manager.check_tg_id(int(command_parts[1])):
+            await user_manager.delete(int(command_parts[1]))
             await message.answer(f"✅ Пользователь `{command_parts[1]}` сброшен!")
         else:
             await message.answer(f"❌ Пользователь с таким ID не зарегистрирован!")
@@ -345,11 +343,39 @@ async def force_mark(message: Message):
         return
     else:
         user_manager = UserManager()
-        if await user_manager.check_tg_id(command_parts[1]):
+        if await user_manager.check_tg_id(int(command_parts[1])):
             attendance_manager = AttendanceManager()
-            success = await attendance_manager.post(message.from_user.id)
+            success = await attendance_manager.post(int(command_parts[1]))
             if success:
                 await message.answer(f"✅ Пользователь `{command_parts[1]}` отмечен!")
             await message.answer(f"❌ Ошибка!")
         else:
             await message.answer(f"❌ Пользователь с таким ID не зарегистрирован!")
+
+@router.message(F.text.in_(["👥 Пользователи","Пользователи"]))
+async def get_users(message: Message):
+    """Получение пользователей"""
+    if not is_admin(message.from_user.id):
+        await message.answer("Эта команда доступна только администраторам!")
+        return
+
+    try:
+        # Создаем новую сессию для экспорта
+        async with async_session() as session:
+            # Вызываем функцию экспорта напрямую (она уже асинхронная)
+            output_file = await export_users_to_excel(session)
+
+            # Проверяем, что файл создался
+            if os.path.exists(output_file):
+                await message.answer_document(FSInputFile(output_file))
+                # Удаляем временный файл после отправки
+                os.remove(output_file)
+            else:
+                await message.answer("❌ Ошибка: файл не был создан")
+
+    except Exception as e:
+        await message.answer(f"❌ Ошибка при экспорте данных: {str(e)}")
+
+@router.message(Command("bio"))
+async def bio(message: Message):
+    await message.answer("Бот сделан Серёжей с Первого Управтеха - Хорошего дня!")
