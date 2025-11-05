@@ -28,7 +28,7 @@
 1. Клонируйте репозиторий:
 ```
 git clone https://github.com/kusti001/attendance_bot.git
-cd attendance-bot
+cd attendance_bot
 ```
 2. Создайте виртуальное окружение:
 ```
