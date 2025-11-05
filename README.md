@@ -27,7 +27,7 @@
 ## Установка
 1. Клонируйте репозиторий:
 ```
-git clone https://github.com/yourusername/attendance-bot.git
+git clone https://github.com/kusti001/attendance_bot.git
 cd attendance-bot
 ```
 2. Создайте виртуальное окружение:
