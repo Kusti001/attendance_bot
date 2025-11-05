@@ -5,11 +5,11 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
 import os
 from datetime import datetime
-from utilits.utilits import export_attendance_to_excel, is_admin, get_attendance_stats, add_admin, remove_admin, \
-    get_admin_ids, export_users_to_excel
+from utils.utils import export_attendance_to_excel, is_admin, get_attendance_stats, add_admin, remove_admin, get_admin_ids, export_users_to_excel
 from . import keyboards as kb
 from config.config import MOSCOW_TZ
 from db.models import UserManager, AttendanceManager, async_session
+
 router = Router()
 
 
@@ -132,11 +132,9 @@ async def export_attendance(message: Message):
 
 @router.message(F.text.in_(["📊 Статистика", "Статистика"]))
 async def get_stats(message: Message):
-    """Получение статистики посещаемости за день"""
     if not is_admin(message.from_user.id):
         await message.answer("Эта команда доступна только администраторам!")
         return
-    
     try:
         async with async_session() as session:
             stats = await get_attendance_stats(session)
@@ -167,7 +165,6 @@ async def get_stats(message: Message):
 
 @router.message(Command("admins"))
 async def manage_admins(message: Message):
-    """Управление администраторами (только для супер-админов)"""
     # Проверяем, что пользователь является администратором
     if not is_admin(message.from_user.id):
         await message.answer("❌ У вас нет прав для выполнения этой команды!")
@@ -182,16 +179,11 @@ async def manage_admins(message: Message):
     else:
         admin_text += "Администраторы не найдены"
     
-    admin_text += "\n**Команды:**\n"
-    admin_text += "• `/add_admin <ID>` - добавить администратора\n"
-    admin_text += "• `/remove_admin <ID>` - удалить администратора\n"
-    admin_text += "• `/admins` - показать список администраторов"
-    
+    admin_text += "\n**Команды:**\n• `/add_admin <ID>` - добавить администратора\n• `/remove_admin <ID>` - удалить администратора\n• `/admins` - показать список администраторов"
     await message.answer(admin_text, parse_mode="Markdown")
 
 @router.message(Command("add_admin"))
 async def add_admin_command(message: Message):
-    """Добавление администратора"""
     if not is_admin(message.from_user.id):
         await message.answer("❌ У вас нет прав для выполнения этой команды!")
         return
@@ -224,7 +216,6 @@ async def add_admin_command(message: Message):
 
 @router.message(Command("remove_admin"))
 async def remove_admin_command(message: Message):
-    """Удаление администратора"""
     if not is_admin(message.from_user.id):
         await message.answer("❌ У вас нет прав для выполнения этой команды!")
         return
@@ -256,7 +247,6 @@ async def remove_admin_command(message: Message):
 
 @router.message(Command("help"))
 async def help_command(message: Message):
-    """Показывает справку по командам"""
     help_text = """
 🤖 **Бот учета посещаемости**
 
@@ -287,7 +277,6 @@ async def help_command(message: Message):
 
 @router.message(Command("status"))
 async def status_command(message: Message):
-    """Показывает статус пользователя"""
     user_manager = UserManager()
     if await user_manager.check_tg_id(message.from_user.id):
         user = await user_manager.get(message.from_user.id)
@@ -306,12 +295,10 @@ async def status_command(message: Message):
 
 @router.message(Command("myid"))
 async def get_my_id(message: Message):
-    """Показывает ID пользователя"""
     await message.answer(f"**Ваш ID:** `{message.from_user.id}`\n\nИспользуйте этот ID для решения проблем с регистрацией", parse_mode="Markdown")
 
 @router.message(Command("reset_user"))
 async def reset_user(message: Message):
-    """Сброс пользователя"""
     if not is_admin(message.from_user.id):
         await message.answer("❌ У вас нет прав для выполнения этой команды!")
         return
@@ -331,7 +318,6 @@ async def reset_user(message: Message):
 
 @router.message(Command("force_mark"))
 async def force_mark(message: Message):
-    """Форсированная отметка"""
     if not is_admin(message.from_user.id):
         await message.answer("❌ У вас нет прав для выполнения этой команды!")
         return
@@ -354,7 +340,6 @@ async def force_mark(message: Message):
 
 @router.message(F.text.in_(["👥 Пользователи","Пользователи"]))
 async def get_users(message: Message):
-    """Получение пользователей"""
     if not is_admin(message.from_user.id):
         await message.answer("Эта команда доступна только администраторам!")
         return

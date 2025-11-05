@@ -3,8 +3,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config.config import BOT_TOKEN
 from .handlers import router
 from .middleware import GeneratorMiddleware
-import asyncio
-import logging
 
 async def main(generator):
     bot = Bot(BOT_TOKEN)

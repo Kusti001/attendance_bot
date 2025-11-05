@@ -12,25 +12,12 @@ import openpyxl
 load_dotenv()
 
 def is_admin(telegram_id: int) -> bool:
-    """Проверяет, является ли пользователь администратором"""
     return telegram_id in ADMIN_IDS
 
-
 def get_admin_ids() -> list:
-    """Получает список ID администраторов"""
     return ADMIN_IDS.copy()
 
-
 def add_admin(telegram_id: int) -> bool:
-    """
-    Добавляет администратора
-    
-    Args:
-        telegram_id: ID пользователя Telegram
-        
-    Returns:
-        bool: True если успешно добавлен, False если уже существует
-    """
     try:
         if telegram_id in ADMIN_IDS:
             return False
@@ -46,17 +33,7 @@ def add_admin(telegram_id: int) -> bool:
         print(f"[ERR] Ошибка при добавлении администратора: {e}")
         return False
 
-
 def remove_admin(telegram_id: int) -> bool:
-    """
-    Удаляет администратора
-    
-    Args:
-        telegram_id: ID пользователя Telegram
-        
-    Returns:
-        bool: True если успешно удален, False если не найден
-    """
     try:
         if telegram_id not in ADMIN_IDS:
             return False
@@ -76,7 +53,6 @@ def remove_admin(telegram_id: int) -> bool:
 
 
 def reload_admin_ids():
-    """Перезагружает список администраторов из .env файла"""
     try:
         from config.config import ADMIN_IDS as new_admin_ids
         global ADMIN_IDS
@@ -87,31 +63,21 @@ def reload_admin_ids():
         return False
 
 async def export_attendance_to_excel(session: AsyncSession, output_file: str = None) -> str:
-    """
-    Экспортирует данные о посещаемости в Excel-файл.
-
-    Args:
-        session: SQLAlchemy сессия для доступа к базе данных
-        output_file: Имя выходного файла (по умолчанию attendance_DD-MM-YYYY.xlsx)
-
-    Returns:
-        str: Путь к созданному файлу
-    """
     try:
         # Если имя файла не указано, генерируем его с датой
         if output_file is None:
             timestamp = datetime.now(MOSCOW_TZ).strftime("%d-%m-%Y")
             output_file = f"attendance_{timestamp}.xlsx"
-        
-        # Базовый запрос с JOIN
+
+        # Получаем данные
         query = select(Attendance, User).join(User, Attendance.user_id == User.id)
         result = await session.execute(query)
         data = result.all()
         if not data:
-            # Если данных нет, создаем пустой DataFrame
+            # Если данных нет, создаем пустой df
             df = pd.DataFrame(columns=["Дата", "ФИО", "Группа"])
         else:
-            # Создаем DataFrame из результатов
+            # Создаем df из результатов
             df = pd.DataFrame(
                 [
                     {
@@ -231,15 +197,6 @@ async def export_users_to_excel(session: AsyncSession, output_file: str = None) 
         raise e
 
 async def get_attendance_stats(session: AsyncSession) -> dict:
-    """
-    Получает статистику посещаемости за текущий день.
-    
-    Args:
-        session: SQLAlchemy сессия для доступа к базе данных
-        
-    Returns:
-        dict: Словарь со статистикой за день
-    """
     try:
         # Получаем текущую дату в московском времени
         today = datetime.now(MOSCOW_TZ).date()

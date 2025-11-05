@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, select
 
 from config.config import DB_URL, MOSCOW_TZ
 # Создаём асинхронный движок для SQLite
-engine = create_async_engine("sqlite+aiosqlite:///bot.db", echo=False)
+engine = create_async_engine(DB_URL, echo=False)
 
 Base = declarative_base()
 
@@ -118,7 +118,7 @@ class AttendanceManager:
                         return False
                     
                     # Создаем новую запись о посещении
-                    attendance = Attendance(user_id=user.id)  # ИСПРАВЛЕНО: user_id вместо user
+                    attendance = Attendance(user_id=user.id)
                     session.add(attendance)
                     await session.commit()
                     print(f"[OK] {user.full_name} - Отмечен(а)")

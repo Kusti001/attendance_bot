@@ -1,2 +1,25 @@
-/.venv/
-/bot.db
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+venv/
+*.env.local
+
+# Databases
+*.db
+*.sqlite3
+
+# Logs and temp
+*.log
+*.tmp
+*.xlsx  # Временные Excel-файлы
+
+# OS-specific
+.DS_Store
+Thumbs.db
